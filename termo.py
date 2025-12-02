@@ -27,10 +27,8 @@ def checaPalavra(inputStr : str, targetStr : str):
         else: res[i] = 'W'
     
     to_res = ""
-    print(res)
     for c in res:
         to_res += c
-    print(to_res)
     return to_res
             
 def remove_acentos(text):
@@ -90,15 +88,16 @@ while(i>0):
     achou = False
     for palavra in palavras_full:
         if(remove_acentos(palavra) == tentativa):
-            saved = palavra
+            tentativa_to_print = palavra
             achou = True
             break
     if(not achou):
         print("A palavra não é válida (só tem 1000 palavras foi mal algumas vao ficar de fora)")
         continue
+    
     i -= 1
     resultado = checaPalavra(tentativa, alvo)
-    printaEstado(saved, resultado)
+    printaEstado(tentativa_to_print, resultado)
     if(resultado == "GGGGG"):
         print("Parabéns!")
         exit(0)
