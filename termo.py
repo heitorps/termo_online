@@ -45,20 +45,24 @@ def remove_acentos(text):
     return "".join([c for c in normalized_text if not unicodedata.combining(c)])
 
 def printaEstado(tentativa, resultado):
+    BG_BLACK = "\033[40m"
+    BG_GREEN = "\033[42m"
+    BG_YELLOW = "\033[43m"
+    RESET = "\033[0m"
     for i in range(5):
         if(resultado[i] == 'Y'):
-            print(f"\033[33m{tentativa[i]}\033[0m", end="")
+            print(f"{BG_YELLOW}{tentativa[i]}{RESET}", end="")
         elif(resultado[i] == 'G'):
-            print(f"\033[32m{tentativa[i]}\033[0m", end="")
+            print(f"{BG_GREEN}{tentativa[i]}{RESET}", end="")
         else:
-            print(f"\033[37m{tentativa[i]}\033[0m", end="")
+            print(f"{BG_BLACK}{tentativa[i]}{RESET}", end="")
     print("", end="\n")
 
 ########################################################################################################
 palavras = []
 palavras_full = []
 arq = open("palavras.txt", "r")
-arq_full = open("palavras_big_clean.txt", "r")
+arq_full = open("palavras_big_clean_2.txt", "r")
 
 for linha in arq:
     palavras.append(linha.removesuffix("\n"))
@@ -72,7 +76,7 @@ while(True):
         alvo = palavras[random.randint(0,999)]
         break
     elif(diff == "dificil"):
-        alvo = palavras_full[random.randint(0,6025)]
+        alvo = palavras_full[random.randint(0,5524)]
         break
     else:
         print("Dificuldade inválida")
