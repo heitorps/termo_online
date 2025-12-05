@@ -9,7 +9,7 @@ fim_jogo = False
 def main():
     global fim_jogo
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = ('localhost', 8080)
+    server_address = ('localhost', 8081)
 
     sock.connect(server_address)
     
@@ -28,40 +28,46 @@ def main():
 def thread_receive(sock: socket.socket):
     global fim_jogo, lockInput, inicio_jogo
     while not inicio_jogo:
-        received = sock.recv(1024).decode('utf-8')
-        print(received)
+        received = sock.recv(1024).decode('utf-8').split("\n")
+        for msg in received:
+            if not msg or msg == "\n":
+                continue
 
-        if not received:
-            break
+            print(msg)
+            
+            if msg.startswith("Dificuldade"):
+                while True: 
+                    diff = input("Dificuldade:")
+                    sock.send(diff.encode('utf-8'))
+                    
+                    cert = sock.recv(1024).decode('utf-8')
+                    if "ok" in cert:
+                        break
 
-        if received.startswith("Dificuldade"):
-            while True: 
-                diff = input()
-                cert = sock.recv(1024).decode('utf-8')
-                print(cert)
-                if cert.endswith("ok"):
-                    break
-                sock.send(diff.encode('utf-8'))
+            elif msg.startswith("Modo"):
+                while True:
+                    modo = input("Modo:")
+                    sock.send(modo.encode('utf-8'))
+                    
+                    cert = sock.recv(1024).decode('utf-8')
+                    
+                    if "ok" in cert:
+                        break
 
-        elif received.startswith("Modo"):
-            while True:
-                modo = input()
-                cert = sock.recv(1024).decode('utf-8')
-                print(cert)
-                if cert.endswith("ok"):
-                    inicio_jogo = True
-                    break
-                sock.send(modo.encode('utf-8'))
+            elif "start" in msg:
+                inicio_jogo = True
 
+    print("Olha a partir daqui")
     while not fim_jogo:
-        received = sock.recv(1024).decode('utf-8')
+        received = sock.recv(1024).decode('utf-8').split('\n')
 
-        if not received:
-            break
-        print(received)
+        for msg in received:
+            if not msg:
+                break
+            print(msg)
 
-        if received.endswith("(Digite qualquer coisa para sair)\n"):
-            fim_jogo = True
+            if "sair" in msg:
+                fim_jogo = True
 
         
 

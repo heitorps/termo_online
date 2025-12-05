@@ -15,7 +15,7 @@ palavras_full = []
 jogador_atual = 0 # 0 = A | 1 = B
 # rodada = 1
 # max_rodadas = 12
-jogo_ativo = True
+jogo_ativo = False
 
 
 def envia(connection : socket.socket, msg):
@@ -87,28 +87,27 @@ def servidor_main():
     # cria o socket do servidor
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    server_address = ('localhost', 8080)
+    server_address = ('localhost', 8081)
 
     sock.bind(server_address)
 
     sock.listen(2)
 
     # aceita dois clientes
-    # clients = []
     client1, client_address1 = sock.accept()
     client2, client_address2 = sock.accept()
-    # clients.append(client1)
-    # clients.append(client2)
 
     # inicia threads para cada cliente e para o jogo
     threading.Thread(target=thread_cliente, args=(0, client1)).start()
     threading.Thread(target=thread_cliente, args=(1, client2)).start()
     threading.Thread(target=thread_jogo, args=(client1, client2)).start()
 
-    
 
 def thread_cliente(id_jogador, sock : socket.socket):
     global jogo_ativo, dados_tentativa, lock, jogador_atual, tentativa_event
+
+    while not jogo_ativo: continue
+
     while jogo_ativo:
         msg = sock.recv(1024).decode('utf-8')
     
@@ -120,10 +119,13 @@ def thread_cliente(id_jogador, sock : socket.socket):
 
                 else: sock.send("ESPERE SUA VEZ\n".encode('utf-8'))
 
+        
+
     
 
 def thread_jogo(client1, client2):
     global alvo, palavras_full
+    print("Acessando base de palavras de Tel Aviv")
 
     palavras = []
     palavras_full = []
@@ -143,40 +145,51 @@ def thread_jogo(client1, client2):
     for linha in arq_full:
         palavras_full.append(linha.removesuffix("\n"))
 
-    envia(client1, "Dificuldade (facil[0], dificil[1])")
+    envia(client1, "Dificuldade (facil[0], dificil[1])\n")
     while(True):
-        
+        print("Pedindo dificuldade da tarefa da IDF")
         diff = client1.recv(1024).decode('utf-8')
         
-        if(diff == "facil" or 0):
+        print(f"Solddado da IDF escolheu dificuldade {diff}")
+
+        if "facil" in diff or "0" in diff:
             alvo = palavras[random.randint(0,999)]
             break
-        elif(diff == "dificil" or 1):
+        elif "dificil" in diff or "1" in diff:
             alvo = palavras_full[random.randint(0,5524)]
             break
         else:
+            envia(client1, "Dificuldade invalida\n")
             print("Dificuldade invalida")
             continue
 
-    envia(client1, "ok")
+    envia(client1, "ok\n")
 
+    print("Pedindo Modo da tarefa da IDF")
     trans = False
+
+    envia(client1, "Modo (invisivel[0]/visivel[1])\n")
     while(True):
-        envia(client1, "Modo (invisivel[0]/visivel[1])\n")
         temp = client1.recv(1024).decode('utf-8')
 
-        if(temp == "invisivel" or 0):
+        if "invisivel" in temp or "0" in temp:
             trans = False
             break
-        elif(temp == "visivel" or 1):
+        elif(temp == "visivel" or temp == "1"):
             trans = True
             break
         else:
             print("Modo invalido")
             continue
 
-    envia(client1, "ok")
+    print(alvo)
+    envia(client1, "ok\n")
 
+    print("Mandando os soldados começarem")
+    envia(client1, "start\n")
+    envia(client2, "start\n")
+
+    jogo_ativo = True
     f = True
     while jogo_ativo and rodada<=max_rodadas:  
         # print(clients)
@@ -200,15 +213,13 @@ def thread_jogo(client1, client2):
         f = True
 
         
+        envia(clients[jogador], f"{stringEstado(str(tentativa_to_print), checaPalavra(tentativa, alvo))}\n")
+        if trans:
+            envia(clients[1 - jogador], f"O oponenente jogou: {str(tentativa_to_print)}\n")
 
         if tentativa_vencedora(tentativa):
             ganhou[jogador_atual] = True
 
-        envia(clients[jogador], f"{stringEstado(str(tentativa_to_print), checaPalavra(str(tentativa_to_print), alvo))}\n")
-        if trans:
-            envia(clients[1 - jogador], "O oponenente jogou:")
-            envia(clients[1 - jogador], f"{stringEstado(str(tentativa_to_print), checaPalavra(str(tentativa_to_print), alvo))}\n")
-        
         if rodada%2 == 0 and True in ganhou:
             if ganhou.count(True) == 2:
                 envia(clients[jogador], "EMPATE (ambos acertaram juntos)\n")
@@ -221,6 +232,7 @@ def thread_jogo(client1, client2):
 
             jogo_ativo = False
 
+        
         jogador_atual = 1 - jogador_atual
         rodada +=1
     
@@ -249,7 +261,7 @@ def checaValidadeTentativa(tentativa):
     return False, tentativa_to_print
 
 def tentativa_vencedora(tentativa):
-    if tentativa == "tchau":
+    if remove_acentos(tentativa) == remove_acentos(alvo):
         return True
     else: return False
 
