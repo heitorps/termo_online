@@ -54,7 +54,7 @@ def stringEstado(tentativa, resultado):
     return out
 
 
-def checaPalavra(inputStr : str, targetStr : str):
+def checaPalavra(inputStr : str, targetStr : str, pontuacao):
     fTarget = remove_acentos(targetStr)
     res = ["W","W","W","W","W"]
     lCountTarget = {}
@@ -76,10 +76,22 @@ def checaPalavra(inputStr : str, targetStr : str):
             lCountInput[c] = lCountInput.get(c,0) + 1
             res[i] = 'Y'
         else: res[i] = 'W'
-    
+
     to_res = ""
+    old = pontuacao[jogador_atual]
+    pontuacao[jogador_atual] = 0
+    
     for c in res:
         to_res += c
+        
+        if c == 'G':
+            pontuacao[jogador_atual] += 2
+        elif c == 'Y':
+            pontuacao[jogador_atual] += 1
+    
+    if(pontuacao[jogador_atual] == 10):
+        pontuacao[jogador_atual] = old
+
     return to_res
 
 def servidor_main():
@@ -139,6 +151,7 @@ def thread_jogo(client1, client2):
     rodada = 1
     max_rodadas = 12
     ganhou = [False, False]
+    pontuacao = [0,0]
 
     for linha in arq:
         palavras.append(linha.removesuffix("\n"))
@@ -213,7 +226,7 @@ def thread_jogo(client1, client2):
         f = True
 
         
-        envia(clients[jogador], f"{stringEstado(str(tentativa_to_print), checaPalavra(tentativa, alvo))}\n")
+        envia(clients[jogador], f"{stringEstado(str(tentativa_to_print), checaPalavra(tentativa, alvo, pontuacao))}\n")
         if trans:
             envia(clients[1 - jogador], f"O oponenente jogou: {str(tentativa_to_print)}\n")
 
@@ -222,8 +235,15 @@ def thread_jogo(client1, client2):
 
         if rodada%2 == 0 and True in ganhou:
             if ganhou.count(True) == 2:
-                envia(clients[jogador], "EMPATE (ambos acertaram juntos)\n")
-                envia(clients[1 - jogador], "EMPATE (ambos acertaram juntos)\n")
+                if (pontuacao[0] > pontuacao[1]):
+                    envia(clients[0], "VITORIA\n")
+                    envia(clients[1], "DERROTA\n")
+                elif (pontuacao[1] > pontuacao[0]):
+                    envia(clients[1], "VITORIA\n")
+                    envia(clients[0], "DERROTA\n")
+                else:
+                    envia(clients[jogador], "EMPATE (ambos acertaram juntos)\n")
+                    envia(clients[1 - jogador], "EMPATE (ambos acertaram juntos)\n")
 
             else:
                 ganhador = ganhou.index(True)
