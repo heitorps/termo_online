@@ -15,12 +15,12 @@ conda activate my_machine
 ```
 Nenhuma biblioteca adicional precisou ser instalada
 ### Instruções de Execução
-O arquivo server.py refere-se ao servidor do jogo, para rodar basta:
+O arquivo server.py refere-se ao servidor do jogo, para rodar:
 ```sh
 python server.py
 ```
 O programa vai esperar até que duas conexões sejam realizadas antes de prosseguir sua execução
-O arquivo client.py refere ao cliente do jogo, o servidor esperar exatamente 2 instâncias de cliente, para rodar basta:
+O arquivo client.py refere ao cliente do jogo, o servidor esperar exatamente 2 instâncias de cliente, para rodar:
 ```sh
 python client.py
 ```
