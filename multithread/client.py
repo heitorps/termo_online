@@ -57,7 +57,6 @@ def thread_receive(sock: socket.socket):
             elif "start" in msg:
                 inicio_jogo = True
 
-    print("Olha a partir daqui")
     while not fim_jogo:
         received = sock.recv(1024).decode('utf-8').split('\n')
 

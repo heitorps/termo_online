@@ -43,13 +43,10 @@ def stringEstado(tentativa, resultado):
     for i in range(5):
         if(resultado[i] == 'Y'):
             out += f"{BG_YELLOW}{tentativa[i]}{RESET}"
-            #print(f"{BG_YELLOW}{tentativa[i]}{RESET}", end="")
         elif(resultado[i] == 'G'):
             out += f"{BG_GREEN}{tentativa[i]}{RESET}"
-            #print(f"{BG_GREEN}{tentativa[i]}{RESET}", end="")
         else:
             out += f"{BG_BLACK}{tentativa[i]}{RESET}"
-            #print(f"{BG_BLACK}{tentativa[i]}{RESET}", end="")
     
     return out
 
@@ -137,7 +134,6 @@ def thread_cliente(id_jogador, sock : socket.socket):
 
 def thread_jogo(client1, client2):
     global alvo, palavras_full
-    print("Acessando base de palavras de Tel Aviv")
 
     palavras = []
     palavras_full = []
@@ -160,10 +156,8 @@ def thread_jogo(client1, client2):
 
     envia(client1, "Dificuldade (facil[0], dificil[1])\n")
     while(True):
-        print("Pedindo dificuldade da tarefa da IDF")
         diff = client1.recv(1024).decode('utf-8')
         
-        print(f"Solddado da IDF escolheu dificuldade {diff}")
 
         if "facil" in diff or "0" in diff:
             alvo = palavras[random.randint(0,999)]
@@ -178,7 +172,6 @@ def thread_jogo(client1, client2):
 
     envia(client1, "ok\n")
 
-    print("Pedindo Modo da tarefa da IDF")
     trans = False
 
     envia(client1, "Modo (invisivel[0]/visivel[1])\n")
@@ -195,17 +188,14 @@ def thread_jogo(client1, client2):
             print("Modo invalido")
             continue
 
-    print(alvo)
     envia(client1, "ok\n")
 
-    print("Mandando os soldados começarem")
     envia(client1, "start\n")
     envia(client2, "start\n")
 
     jogo_ativo = True
     f = True
     while jogo_ativo and rodada<=max_rodadas:  
-        # print(clients)
         if f:
             envia(clients[jogador_atual], "SUA_VEZ\n")
             envia(clients[1 - jogador_atual], "AGUARDE\n")
@@ -235,16 +225,8 @@ def thread_jogo(client1, client2):
 
         if rodada%2 == 0 and True in ganhou:
             if ganhou.count(True) == 2:
-                if (pontuacao[0] > pontuacao[1]):
-                    envia(clients[0], "VITORIA\n")
-                    envia(clients[1], "DERROTA\n")
-                elif (pontuacao[1] > pontuacao[0]):
-                    envia(clients[1], "VITORIA\n")
-                    envia(clients[0], "DERROTA\n")
-                else:
-                    envia(clients[jogador], "EMPATE (ambos acertaram juntos)\n")
-                    envia(clients[1 - jogador], "EMPATE (ambos acertaram juntos)\n")
-
+                envia(clients[jogador], "EMPATE (ambos acertaram juntos)\n")
+                envia(clients[1 - jogador], "EMPATE (ambos acertaram juntos)\n")
             else:
                 ganhador = ganhou.index(True)
                 envia(clients[ganhador], "VITORIA\n")
@@ -257,9 +239,20 @@ def thread_jogo(client1, client2):
         rodada +=1
     
     if jogo_ativo:
-        envia(clients[jogador], "EMPATE (ambos perderam)\n")
-        envia(clients[1 - jogador], "EMPATE (ambos perderam)\n")
+        if (pontuacao[0] > pontuacao[1]):
+            envia(clients[0], "VITORIA por numero de letras\n")
+            envia(clients[1], "DERROTA por numero de letras\n")
+        elif (pontuacao[1] > pontuacao[0]):
+            envia(clients[1], "VITORIA por numero de letras\n")
+            envia(clients[0], "DERROTA por numero de letras\n")
+        else:
+            envia(clients[1], "EMPATE por numero de letras\n")
+            envia(clients[0], "EMPATE por numero de letras\n")
         jogo_ativo = False
+
+    
+        
+        
 
     envia(clients[jogador], "FIM (Digite qualquer coisa para sair)\n")
     envia(clients[1 - jogador], "FIM (Digite qualquer coisa para sair)\n")
