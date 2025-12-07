@@ -1,3 +1,11 @@
+#Termo Online
+
+###Descrição
+Versão de terminal multijador competitivo do famoso jogo de navedagor [termo](https://term.ooo/), projetada em python para a disciplina de Redes de COmputadores do curso de Engenharia de Computação.
+
+###Tecnologias Utilizadas
+Todo o programa foi feito em python, a conexão entre máquinas é proporcionada pela biblioteca "socket", que implementa uma conexão TCP de forma simples, permitindo configurar uma máquina como servidor e outra como cliente em uma rede local
+
 A versão utilizada do python foi a 3.11
 Recomendamos o uso de um ambiente virtual, no conda:
 ```sh
